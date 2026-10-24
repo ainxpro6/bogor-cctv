@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>BSW Kota Bogor - Live CCTV Command Center</title>
+  
+  <!-- SEO & Social Meta -->
+  <meta name="description" content="Dashboard pemantau siaran langsung CCTV Kota Bogor (BSW - Bogor Single Window). Pantau arus lalu lintas, titik rawan, dan ruang publik Kota Bogor secara real-time.">
+  <meta name="keywords" content="CCTV Bogor, BSW Kota Bogor, Lalu Lintas Bogor, Pantau CCTV, Live Stream CCTV Bogor, M3U8 Stream">
+  <meta property="og:title" content="BSW Kota Bogor - Live CCTV Command Center">
+  <meta property="og:description" content="Aplikasi pemantau siaran langsung CCTV Kota Bogor secara real-time.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#070a12">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- HLS.js Streaming Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+
+  <!-- Pre-scraped CCTV Catalog Data (Zero-CORS offline & standalone support) -->
+  <script src="cctv_bogor.js"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- TOP NAVIGATION & COMMAND HEADER -->
+    <header class="header-navbar">
+      <div class="nav-wrapper">
+        <!-- Brand Info -->
+        <div class="brand-section">
+          <div class="brand-badge" title="BSW Kota Bogor">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <h1>
+              <span>BOGOR CCTV MONITOR</span>
+              <span class="live-indicator-dot" title="Live System Online"></span>
+            </h1>
+            <div class="tagline">
+              <span>BSW • DISKOMINFO KOTA BOGOR</span>
+              <span>•</span>
+              <span id="clockDate">Memuat tanggal...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Stats & Live Clock -->
+        <div class="nav-center-telemetry">
+          <div class="telemetry-item">
+            <span class="label">LIVE:</span>
+            <span class="value online-val" id="onlineCount">--</span>
+            <span class="label">/</span>
+            <span class="value" id="totalCount">93</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="label">WAKTU:</span>
+            <span class="value clock-val" id="clockTime">--:--:-- WIB</span>
+          </div>
+        </div>
+
+        <!-- Action Exports -->
+        <div class="nav-actions">
+          <button class="btn btn-sm btn-glass" id="btnDownloadM3u" title="Unduh playlist m3u untuk VLC atau Smart TV">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>M3U<span class="btn-label-long"> (VLC)</span></span>
+          </button>
+          <button class="btn btn-sm btn-primary" id="btnDownloadJson" title="Unduh data JSON lengkap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span><span class="btn-label-long">Ekspor </span>JSON</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- VIEW TABS & GRID SIZERS -->
+    <nav class="view-tabs-bar">
+      <div class="tabs-container">
+        <div class="nav-tabs">
+          <button class="tab-btn active" data-tab="grid">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+            <span>Semua Kamera</span>
+            <span class="badge-pill" id="activeViewCount">93</span>
+          </button>
+
+          <button class="tab-btn" data-tab="matrix">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+            </svg>
+            <span>Surveillance Matrix (Multi-Cam)</span>
+          </button>
+
+          <button class="tab-btn" data-tab="favorites">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <span>Favorit Saya</span>
+            <span class="badge-pill" id="favTabCount">0</span>
+          </button>
+
+          <button class="tab-btn" data-tab="m3u">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            <span>Stream API & M3U Info</span>
+          </button>
+        </div>
+
+        <!-- Grid Column Density Sizers -->
+        <div class="grid-density-controls" title="Atur Kepadatan Grid">
+          <button class="density-btn" data-density="cols-1" title="1 Kolom (Penuh / HP)">1</button>
+          <button class="density-btn" data-density="cols-2" title="2 Kolom (Besar)">2</button>
+          <button class="density-btn active" data-density="cols-3" title="3 Kolom (Sedang)">3</button>
+          <button class="density-btn" data-density="cols-4" title="4 Kolom (Kompak)">4</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- SEARCH & CATEGORY FILTERS (Visible on Grid & Favorites) -->
+    <section class="filter-section" id="filterSection">
+      <div class="search-row">
+        <!-- Search Field -->
+        <div class="search-input-box">
+          <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Cari nama jalan, simpang, ID CCTV, atau wilayah (cth: Tugu Kujang, Pajajaran, Tajur, #75)...">
+          <button class="search-clear-btn" id="searchClearBtn" title="Hapus pencarian">✕</button>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="filter-selects">
+          <select id="statusSelect" class="custom-select">
+            <option value="all">Semua Status</option>
+            <option value="online">Hanya Live Online</option>
+            <option value="standby">Hanya Standby</option>
+          </select>
+
+          <!-- Sort Select -->
+          <select id="sortSelect" class="custom-select">
+            <option value="id-asc">Urutkan: ID Terkecil</option>
+            <option value="id-desc">Urutkan: ID Terbesar</option>
+            <option value="name-asc">Urutkan: Nama A - Z</option>
+            <option value="status-online">Urutkan: Status Online Dulu</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Pills Carousel -->
+      <div class="category-pills-wrap" id="categoryPills">
+        <!-- Injected via app.js -->
+      </div>
+    </section>
+
+    <!-- MAIN BODY CONTENT -->
+    <main class="main-content">
+      <!-- 1. GRID CONTAINER -->
+      <div id="gridContainer">
+        <div class="results-header">
+          <span id="resultsCounter">Menampilkan <strong>93</strong> CCTV</span>
+          <span style="font-size: 0.76rem; color: var(--text-faint);">Klik tombol play pada kartu untuk preview instan, atau "Tonton Live" untuk layar penuh</span>
+        </div>
+
+        <!-- Camera Cards Grid -->
+        <div class="cctv-grid cols-3" id="cctvGrid">
+          <!-- Dynamically generated cards -->
+        </div>
+      </div>
+
+      <!-- 2. MATRIX SURVEILLANCE WALL CONTAINER -->
+      <div class="matrix-container" id="matrixContainer">
+        <div class="matrix-toolbar">
+          <div class="matrix-controls-left">
+            <h3 style="font-size: 1rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <span class="live-indicator-dot"></span>
+              SURVEILLANCE MATRIX WALL
+            </h3>
+            <select id="matrixLayoutSelect" class="custom-select" style="height: 36px;">
+              <option value="4">Tata Letak 2 x 2 (4 Kamera)</option>
+              <option value="9">Tata Letak 3 x 3 (9 Kamera)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <select id="matrixPresetSelect" class="custom-select" style="height: 36px;">
+              <option value="">Pilih Preset Lokasi...</option>
+              <option value="pusat_kota">Pusat Kota (Kujang, Muslihat, Juanda, Sempur)</option>
+              <option value="jalan_baru">Jalan Baru & Yasmin (Sholeh Iskandar)</option>
+              <option value="taman_kota">Taman-Taman Kota (Sempur, Heulang, Kencana)</option>
+              <option value="tol_ciawi">Pintu Tol & Jalur Ciawi</option>
+            </select>
+            <button class="btn btn-sm btn-glass" onclick="window.location.reload()" title="Refresh Matrix">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>Refresh Feed</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="matrix-grid layout-2x2" id="matrixGrid">
+          <!-- Dynamically generated video tiles -->
+        </div>
+      </div>
+
+      <!-- 3. M3U & API INFO CONTAINER -->
+      <div id="m3uViewContainer" style="display: none;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px; max-width: 900px; margin: 0 auto;">
+          <h2 style="font-size: 1.3rem; margin-bottom: 12px; color: #fff;">Integrasi Playlist M3U & Endpoint Streaming</h2>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+            Semua siaran langsung CCTV BSW Kota Bogor menggunakan format <strong>HLS (.m3u8)</strong> dengan kompresi AVC1 (H.264) 720p pada server resmi Diskominfo Kota Bogor (<code>restreamer*.kotabogor.go.id</code>).
+          </p>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="btnDownloadM3u2" onclick="document.getElementById('btnDownloadM3u').click()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              <span>Download bogor_cctv.m3u Playlist</span>
+            </button>
+            <button class="btn btn-glass" id="btnDownloadCsv">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Download CSV</span>
+            </button>
+          </div>
+
+          <h3 style="font-size: 1rem; color: #38bdf8; margin-bottom: 10px;">Cara Memutar di VLC Media Player</h3>
+          <ol style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.8; margin-left: 20px; margin-bottom: 24px;">
+            <li>Unduh file <code>bogor_cctv.m3u</code> melalui tombol di atas.</li>
+            <li>Buka <strong>VLC Media Player</strong> di komputer atau HP Anda.</li>
+            <li>Drag & drop file <code>bogor_cctv.m3u</code> ke dalam VLC, atau buka via menu <em>Media -> Open File</em>.</li>
+            <li>Daftar seluruh 93 kamera CCTV Kota Bogor akan langsung muncul di Playlist VLC dan siap ditonton tanpa jeda.</li>
+          </ol>
+
+          <h3 style="font-size: 1rem; color: #38bdf8; margin-bottom: 10px;">Struktur Data JSON</h3>
+          <pre style="background: var(--bg-primary); padding: 16px; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 0.78rem; color: #a5f3fc; overflow-x: auto; border: 1px solid var(--border-subtle);">{
+  "id": 79,
+  "name": "TUGU KUJANG",
+  "full_title": "SIMPANG TUGU KUJANG",
+  "category": "Bogor Tengah",
+  "stream_url": "https://restreamer2.kotabogor.go.id/memfs/5a5cf878-9d9b-4400-a73a-27a5b24a6ec4.m3u8",
+  "detail_url": "https://bsw.kotabogor.go.id/cctv/79/detail",
+  "is_active": true,
+  "status": "online"
+}</pre>
+        </div>
+      </div>
+    </main>
+
+    <!-- CINEMA / SPOTLIGHT VIEW MODAL -->
+    <div class="modal-overlay" id="cinemaModal">
+      <div class="modal-dialog">
+        <!-- Modal Top Bar -->
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="status-badge live" id="cinemaStatusPill">LIVE</span>
+            <span class="card-id-badge" id="cinemaId">#--</span>
+            <div>
+              <h3 id="cinemaTitle">Nama Kamera</h3>
+              <span style="font-size: 0.74rem; color: #60a5fa;" id="cinemaCategory">Kategori</span>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="cinemaCloseBtn" title="Tutup (Esc)">✕</button>
+        </div>
+
+        <!-- Video Player Window -->
+        <div class="modal-player-wrap">
+          <video id="cinemaVideo" playsinline></video>
+
+          <!-- Floating Overlay Controls -->
+          <div class="modal-controls-overlay">
+            <div class="modal-ctrl-left">
+              <button class="ctrl-btn" id="cinemaPlayBtn" title="Putar / Jeda (Spasi)">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="ctrl-btn" id="cinemaMuteBtn" title="Mute / Unmute">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              </button>
+              <button class="ctrl-btn" id="cinemaPrevBtn" title="Kamera Sebelumnya (Panah Kiri)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <button class="ctrl-btn" id="cinemaNextBtn" title="Kamera Berikutnya (Panah Kanan)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+            <div class="modal-ctrl-right">
+              <button class="ctrl-btn" id="cinemaSnapshotBtn" title="Ambil Tangkapan Layar (Snapshot PNG)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </button>
+              <button class="ctrl-btn" id="cinemaPipBtn" title="Picture in Picture (PiP)">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2zm10 5h6v4h-6v-4z"/>
+                </svg>
+              </button>
+              <button class="ctrl-btn" id="cinemaFullscreenBtn" title="Layar Penuh">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry & Direct Link Details -->
+        <div class="modal-footer-telemetry">
+          <div class="telemetry-row">
+            <span>RESOLUSI: <strong id="cinemaResolution" style="color: #38bdf8;">1280x720</strong></span>
+            <span>ENGINE: <strong style="color: #34d399;">HLS.js / AVC1</strong></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="#" id="cinemaBswLink" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-glass" style="color: #94a3b8;">
+              <span>Buka di Portal BSW</span>
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- FLOATING BACK TO TOP BUTTON -->
+    <button id="btnBackToTop" class="btn-back-to-top" title="Kembali ke atas" aria-label="Kembali ke atas">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+      </svg>
+    </button>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <div>
+          <strong>BSW CCTV Command Center</strong> • Data bersumber langsung dari portal publik
+          <a href="https://bsw.kotabogor.go.id/cctv" target="_blank" rel="noopener noreferrer" style="color: var(--accent-cyan);">Bogor Single Window</a>
+        </div>
+        <div class="footer-links">
+          <span>93 Kamera Terindeks</span>
+          <span>•</span>
+          <span>Auto-Reconnected HLS Stream</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
